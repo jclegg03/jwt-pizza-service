@@ -24,12 +24,18 @@ test("Get user franchises", async () => {
 });
 
 test("Add franchise", async () => {
+    const franchiseName = randomName();
+    const franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
     const addFranchiseRes = await request(app)
         .post("/api/franchise")
         .set("Authorization", 'Bearer ' + testUser.token)
-        .send({"name": randomName(), "admins": [{"email": testUser.email}]});
+        .send(franchise);
 
+    franchise.admins[0].name = testUser.name;
+    delete addFranchiseRes.body.admins[0].id;
+    delete addFranchiseRes.body.id;
     expect(addFranchiseRes.status).toBe(200);
+    expect(addFranchiseRes.body).toEqual(franchise);
 });
 
 // afterAll(async () => {
