@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../src/service.js');
 const { randomName } = require('./testHelpers.js');
 const { Role, DB } = require('../src/database/database.js');
+const config = require('../src/config.js');
 
 let testUser;
 
@@ -38,12 +39,26 @@ test("Add franchise", async () => {
     expect(addFranchiseRes.body).toEqual(franchise);
 });
 
+test("Add store", async () => {
+    const franchiseName = randomName();
+    let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+    franchise = await DB.createFranchise(franchise);
+    const store = {"franchiseId": franchise.id, "name":randomName()};
+
+    const addStoreRes = await request(app)
+        .post("/api/franchise/" + franchise.id + "/store")
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send(store);
+    
+    expect(addStoreRes.status).toBe(200);
+});
+
 // afterAll(async () => {
 //     demoteAdmin(testUser);
 // });
 
 async function createAdminUser() {
-  let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
+  let user = { password: config.adminPassword, roles: [{ role: Role.Admin }] };
   user.name = randomName();
   user.email = user.name + '@admin.com';
 
