@@ -50,13 +50,17 @@ test("Add store", async () => {
         .set("Authorization", 'Bearer ' + testUser.token)
         .send(store);
     
+    delete addStoreRes.body.id;
+    
     expect(addStoreRes.status).toBe(200);
+    expect(addStoreRes.body).toEqual(store);
 });
 
 test("Get user franchises", async () => {
     const franchiseName = randomName();
     let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
     franchise = await DB.createFranchise(franchise);
+    franchise.stores = [];
 
     const getFranchisesRes = await request(app)
         .get("/api/franchise/" + testUser.id)
@@ -64,7 +68,7 @@ test("Get user franchises", async () => {
         .send();
     
     expect(getFranchisesRes.status).toBe(200);
-    
+    expect(getFranchisesRes.body).toEqual([franchise]);
 });
 
 // afterAll(async () => {
