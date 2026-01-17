@@ -15,7 +15,7 @@ beforeAll(async () => {
   testUser.token = testUserAuthToken;
 });
 
-test("Get user franchises", async () => {
+test("Get franchises", async () => {
     const getFranchisesRes = await request(app)
         .get('/api/franchise')
         .send();
@@ -53,8 +53,22 @@ test("Add store", async () => {
     expect(addStoreRes.status).toBe(200);
 });
 
+test("Get user franchises", async () => {
+    const franchiseName = randomName();
+    let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+    franchise = await DB.createFranchise(franchise);
+
+    const getFranchisesRes = await request(app)
+        .get("/api/franchise/" + testUser.id)
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send();
+    
+    expect(getFranchisesRes.status).toBe(200);
+    
+});
+
 // afterAll(async () => {
-//     demoteAdmin(testUser);
+//     await demoteAdmin(testUser);
 // });
 
 async function createAdminUser() {
@@ -67,7 +81,12 @@ async function createAdminUser() {
 }
 
 // async function demoteAdmin(user) {
-//   user.roles = [{ role: Role.Franchisee }];
+//   user.roles = [{ role: Role.Diner }];
 
-//   user = await DB.updateUser(user);
+//   const res = await request(app)
+//     .put("/api/user/" + user.id)
+//     .set("Authorization", 'Bearer ' + user.token)
+//     .send(user);
+
+//   expect(res.status).toBe(200);
 // }
