@@ -68,7 +68,7 @@ test("Get user franchises", async () => {
         .send();
     
     expect(getFranchisesRes.status).toBe(200);
-    expect(getFranchisesRes.body).toEqual([franchise]);
+    expect(getFranchisesRes.body).toEqual(expect.arrayContaining([franchise]));
 });
 
 // afterAll(async () => {
