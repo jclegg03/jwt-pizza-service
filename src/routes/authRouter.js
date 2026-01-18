@@ -47,6 +47,7 @@ async function setAuthUser(req, res, next) {
   next();
 }
 
+//TODO this method seems fishy. Shouldn't it check the auth token is valid?
 // Authenticate token
 authRouter.authenticateToken = (req, res, next) => {
   if (!req.user) {
