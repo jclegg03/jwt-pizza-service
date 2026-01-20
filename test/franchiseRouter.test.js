@@ -1,9 +1,22 @@
 const request = require('supertest');
 const app = require('../src/service.js');
-const { randomName, createAdminUser } = require('./testHelpers.js');
+const { randomName, createAdminUser, createBasicUser } = require('./testHelpers.js');
 const { DB } = require('../src/database/database.js');
 
 let testUser;
+
+function createTestFranchise() {
+    const franchiseName = randomName();
+    const franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+    const expectedResponse = expect.objectContaining({
+        "name": franchiseName,
+        "admins": expect.arrayContaining([
+            expect.objectContaining({"email": testUser.email})
+        ])
+    });
+
+    return {"franchise": franchise, "expectedResponse": expectedResponse}
+}
 
 beforeAll(async () => {
   testUser = await createAdminUser()
@@ -18,19 +31,33 @@ test("Get franchises", async () => {
     expect(getFranchisesRes.body).toHaveProperty("franchises");
 });
 
-test("Add franchise", async () => {
-    const franchiseName = randomName();
-    const franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+test("Add franchise as admin", async () => {
+    const testFranchise = createTestFranchise();
+    const franchise = testFranchise.franchise;
+    const expectedResponse = testFranchise.expectedResponse;
+    
     const addFranchiseRes = await request(app)
         .post("/api/franchise")
         .set("Authorization", 'Bearer ' + testUser.token)
         .send(franchise);
 
-    franchise.admins[0].name = testUser.name;
-    delete addFranchiseRes.body.admins[0].id;
-    delete addFranchiseRes.body.id;
     expect(addFranchiseRes.status).toBe(200);
-    expect(addFranchiseRes.body).toEqual(franchise);
+    expect(addFranchiseRes.body).toEqual(expectedResponse);
+});
+
+test("Add franchise as pleb", async () => {
+    const testFranchise = createTestFranchise();
+    const franchise = testFranchise.franchise;
+    const expectedResponse = testFranchise.expectedResponse;
+    const regularUser = await createBasicUser();
+
+    const addFranchiseRes = await request(app)
+        .post("/api/franchise")
+        .set("Authorization", 'Bearer ' + regularUser.token)
+        .send(franchise);
+    
+    expect(addFranchiseRes.status).toBe(403);
+    expect(addFranchiseRes.body).not.toEqual(expectedResponse);
 });
 
 test("Add store", async () => {
