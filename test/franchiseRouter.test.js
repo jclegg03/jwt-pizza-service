@@ -1,8 +1,7 @@
 const request = require('supertest');
 const app = require('../src/service.js');
-const { randomName } = require('./testHelpers.js');
-const { Role, DB } = require('../src/database/database.js');
-const config = require('../src/config.js');
+const { randomName, createAdminUser } = require('./testHelpers.js');
+const { DB } = require('../src/database/database.js');
 
 let testUser;
 
@@ -74,15 +73,6 @@ test("Get user franchises", async () => {
 // afterAll(async () => {
 //     await demoteAdmin(testUser);
 // });
-
-async function createAdminUser() {
-  let user = { password: config.adminPassword, roles: [{ role: Role.Admin }] };
-  user.name = randomName();
-  user.email = user.name + '@admin.com';
-
-  user = await DB.addUser(user);
-  return user;
-}
 
 // async function demoteAdmin(user) {
 //   user.roles = [{ role: Role.Diner }];
