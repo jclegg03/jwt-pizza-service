@@ -46,3 +46,13 @@ test("Add item", async () => {
             expect.objectContaining(pizza)
         ]));
 });
+
+test("Get orders empty", async () => {
+    const res = await request(app)
+        .get("/api/order")
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send();
+    
+    expect(res.status).toBe(200);
+    expect(res.body.orders).toHaveLength(0);
+});
