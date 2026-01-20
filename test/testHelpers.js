@@ -1,5 +1,7 @@
 const config = require('../src/config.js');
 const { Role, DB } = require('../src/database/database.js');
+const request = require('supertest');
+const app = require('../src/service.js');
 
 function randomName() {
   return Math.random().toString(36).substring(2, 12);
@@ -11,6 +13,12 @@ async function createAdminUser() {
   user.email = user.name + '@admin.com';
 
   user = await DB.addUser(user);
+
+  const registerRes = await request(app).put('/api/auth').send(user);
+
+
+  let userAuthToken = registerRes.body.token;
+  user.token = userAuthToken;
   return user;
 }
 

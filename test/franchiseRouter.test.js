@@ -7,11 +7,6 @@ let testUser;
 
 beforeAll(async () => {
   testUser = await createAdminUser()
-  const registerRes = await request(app).put('/api/auth').send(testUser);
-
-
-  testUserAuthToken = registerRes.body.token;
-  testUser.token = testUserAuthToken;
 });
 
 test("Get franchises", async () => {
