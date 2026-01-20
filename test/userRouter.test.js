@@ -3,7 +3,6 @@ const request = require('supertest');
 const app = require('../src/service.js');
 
 let testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
-const unused = 134;
 
 beforeAll(async () => {
   testUser.email = randomName() + '@test.com';
