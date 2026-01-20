@@ -37,7 +37,7 @@ jobs:
         run: npm run lint
 
       - name: Write config file
-        run:
+        run: |
           echo "module.exports = {
             jwtSecret: '${{ secrets.JWT_SECRET }}',
             db: {
