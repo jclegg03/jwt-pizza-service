@@ -1,16 +1,12 @@
 const request = require('supertest');
 const app = require('../src/service.js');
-const { randomName } = require('./testHelpers.js');
+const { randomName, createBasicUser } = require('./testHelpers.js');
 
-const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
-let testUserAuthToken;
+let testUser;
 
 beforeAll(async () => {
-  testUser.email = randomName() + '@test.com';
-  const registerRes = await request(app).post('/api/auth').send(testUser);
-  testUserAuthToken = registerRes.body.token;
-  expectValidJwt(testUserAuthToken);
-  testUser.token = testUserAuthToken;
+  testUser = await createBasicUser();
+  expectValidJwt(testUser.token);
 });
 
 test('login', async () => {

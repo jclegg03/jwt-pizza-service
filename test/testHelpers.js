@@ -8,7 +8,7 @@ function randomName() {
 }
 
 async function createAdminUser() {
-  let user = { password: config.adminPassword, roles: [{ role: Role.Admin }] };
+  let user = { password: config.testUserPassword, roles: [{ role: Role.Admin }] };
   user.name = randomName();
   user.email = user.name + '@admin.com';
 
@@ -22,7 +22,19 @@ async function createAdminUser() {
   return user;
 }
 
+async function createBasicUser() {
+  const user = {};
+  user.name = "test diner";
+  user.password = config.testUserPassword;
+  user.email = randomName() + '@test.com';
+  const registerRes = await request(app).post('/api/auth').send(user);
+
+  user.token = registerRes.body.token;
+  return user;
+}
+
 module.exports = {
     randomName,
-    createAdminUser
+    createAdminUser,
+    createBasicUser
 }
