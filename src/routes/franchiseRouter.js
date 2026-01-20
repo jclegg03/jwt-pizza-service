@@ -93,6 +93,7 @@ franchiseRouter.post(
   })
 );
 
+//TODO check auth. Anyone can delete a franchise.
 // deleteFranchise
 franchiseRouter.delete(
   '/:franchiseId',
