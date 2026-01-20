@@ -1,6 +1,5 @@
 const request = require('supertest');
 const app = require('../src/service.js');
-const { Role, DB } = require('../src/database/database.js');
 const { randomName } = require('./testHelpers.js');
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
