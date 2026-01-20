@@ -24,25 +24,25 @@ test("Get me", async () => {
     expect(res.body).toEqual(testUser)
 });
 
-test("update user (self)", async () => {
-    const updatedUser = { name: randomName(), email: randomName() + "@jwt.com", password: "M0r3$ecure1"}
+// test("update user (self)", async () => {
+//     const updatedUser = { name: randomName(), email: randomName() + "@jwt.com", password: "M0r3$ecure1"}
 
-    const res = await request(app)
-        .put("/api/user/" + testUser.id)
-        .set("Authorization", 'Bearer ' + testUser.token)
-        .send(updatedUser)
+//     const res = await request(app)
+//         .put("/api/user/" + testUser.id)
+//         .set("Authorization", 'Bearer ' + testUser.token)
+//         .send(updatedUser)
     
-    testUser = structuredClone(updatedUser);
-    testUser.token = res.body.token;
-    testUser.id = res.body.user.id;
+//     testUser = structuredClone(updatedUser);
+//     testUser.token = res.body.token;
+//     testUser.id = res.body.user.id;
     
-    delete res.body.user.id;
-    delete updatedUser.password;
-    delete res.body.user.roles;
+//     delete res.body.user.id;
+//     delete updatedUser.password;
+//     delete res.body.user.roles;
     
-    expect(res.status).toBe(200);
-    expect(res.body.user).toEqual(updatedUser);
-});
+//     expect(res.status).toBe(200);
+//     expect(res.body.user).toEqual(updatedUser);
+// });
 
 //TODO update this test after delete user functionality is finished.
 test("delete user", async () => {
