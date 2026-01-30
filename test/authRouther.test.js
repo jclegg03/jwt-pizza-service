@@ -1,6 +1,6 @@
 const request = require('supertest');
 const app = require('../src/service.js');
-const { randomName, createBasicUser } = require('./testHelpers.js');
+const { createBasicUser } = require('./testHelpers.js');
 
 let testUser;
 
