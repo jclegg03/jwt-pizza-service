@@ -5,10 +5,10 @@ const app = require('../src/service.js');
 let testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 
 beforeAll(async () => {
-  testUser.email = randomName() + '@test.com';
-  const registerRes = await request(app).post('/api/auth').send(testUser);
-  testUser = registerRes.body.user;
-  testUser.token = registerRes.body.token;
+    testUser.email = randomName() + '@test.com';
+    const registerRes = await request(app).post('/api/auth').send(testUser);
+    testUser = registerRes.body.user;
+    testUser.token = registerRes.body.token;
 });
 
 test("Get me", async () => {
@@ -16,33 +16,58 @@ test("Get me", async () => {
         .get("/api/user/me")
         .set("Authorization", 'Bearer ' + testUser.token)
         .send();
-    
+
     delete res.body.iat;
     res.body.token = testUser.token;
-    
+
     expect(res.status).toBe(200);
     expect(res.body).toEqual(testUser)
 });
 
 test("update user (self)", async () => {
-    const updatedUser = { name: randomName(), email: randomName() + "@jwt.com", password: "M0r3$ecure1"}
+    const updatedUser = { name: randomName(), email: randomName() + "@jwt.com", password: "M0r3$ecure1" }
 
     const res = await request(app)
         .put("/api/user/" + testUser.id)
         .set("Authorization", 'Bearer ' + testUser.token)
         .send(updatedUser)
-    
+
     testUser = structuredClone(updatedUser);
     testUser.token = res.body.token;
     testUser.id = res.body.user.id;
-    
+
     delete res.body.user.id;
     delete updatedUser.password;
     delete res.body.user.roles;
-    
+
     expect(res.status).toBe(200);
     expect(res.body.user).toEqual(updatedUser);
 });
+
+test('list users unauthorized', async () => {
+    const listUsersRes = await request(app).get('/api/user');
+    expect(listUsersRes.status).toBe(401);
+});
+
+test('list users', async () => {
+    const [user, userToken] = await registerUser(request(app));
+    const listUsersRes = await request(app)
+        .get('/api/user')
+        .set('Authorization', 'Bearer ' + userToken);
+    expect(listUsersRes.status).toBe(200);
+});
+
+async function registerUser(service) {
+    const testUser = {
+        name: 'pizza diner',
+        email: `${randomName()}@test.com`,
+        password: 'a',
+    };
+    const registerRes = await service.post('/api/auth').send(testUser);
+    registerRes.body.user.password = testUser.password;
+
+    return [registerRes.body.user, registerRes.body.token];
+}
 
 //TODO update this test after delete user functionality is finished.
 test("delete user", async () => {
@@ -50,6 +75,6 @@ test("delete user", async () => {
         .delete("/api/user/" + testUser.id)
         .set("Authorization", 'Bearer ' + testUser.token)
         .send();
-    
+
     expect(res.status).toBe(200);
 });
