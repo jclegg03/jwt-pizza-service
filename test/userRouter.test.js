@@ -77,4 +77,10 @@ test("delete user", async () => {
         .send();
 
     expect(res.status).toBe(200);
+
+    const loginRes = await request(app)
+        .put("/api/auth")
+        .send(testUser);
+
+    expect(loginRes.status).toBe(404);
 });

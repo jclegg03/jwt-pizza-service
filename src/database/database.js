@@ -55,6 +55,38 @@ class DB {
     }
   }
 
+  async deleteUser(userId) {
+    const connection = await this.getConnection();
+    try {
+      await connection.beginTransaction();
+      try {
+        const userResult = await this.query(connection, `SELECT * FROM user WHERE id=?`, [userId]);
+
+        if (userResult.length === 0) {
+          throw new Error("User not found");
+        }
+
+        const user = userResult[0];
+
+        if (user.objectId !== undefined && user.objectId !== 0) {
+          await this.deleteFranchise(user.objectId, connection);
+        }
+
+        await this.query(connection, `DELETE FROM userRole WHERE userId=?`, [userId]);
+        await this.query(connection, `DELETE FROM user WHERE id=?`, [userId]);
+
+        await connection.commit();
+      } catch {
+        await connection.rollback();
+        throw new StatusCodeError('unable to delete user', 500);
+      }
+    }
+
+    finally {
+      connection.end();
+    }
+  }
+
   async getUser(email, password) {
     const connection = await this.getConnection();
     try {
@@ -185,10 +217,11 @@ class DB {
     }
   }
 
-  async deleteFranchise(franchiseId) {
-    const connection = await this.getConnection();
+  async deleteFranchise(franchiseId, existingConnection = null) {
+    const connection = existingConnection ? existingConnection : await this.getConnection();
+    const deleteConnection = !existingConnection;
     try {
-      await connection.beginTransaction();
+      if (deleteConnection) await connection.beginTransaction();
       try {
         await this.query(connection, `DELETE FROM store WHERE franchiseId=?`, [franchiseId]);
         await this.query(connection, `DELETE FROM userRole WHERE objectId=?`, [franchiseId]);
@@ -199,7 +232,7 @@ class DB {
         throw new StatusCodeError('unable to delete franchise', 500);
       }
     } finally {
-      connection.end();
+      if (deleteConnection) connection.end();
     }
   }
 
