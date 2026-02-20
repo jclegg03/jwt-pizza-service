@@ -1,4 +1,4 @@
-const { randomName } = require('./testHelpers.js');
+const { randomName, createAdminUser } = require('./testHelpers.js');
 const request = require('supertest');
 const app = require('../src/service.js');
 
@@ -50,10 +50,12 @@ test('list users unauthorized', async () => {
 });
 
 test('list users', async () => {
-    const [user, userToken] = await registerUser(request(app));
+    // const [user, userToken] = await registerUser(request(app));
+    const user = await createAdminUser();
     const listUsersRes = await request(app)
         .get('/api/user')
-        .set('Authorization', 'Bearer ' + userToken);
+        .set('Authorization', 'Bearer ' + user.token);
+
     expect(listUsersRes.status).toBe(200);
 });
 
@@ -69,7 +71,6 @@ async function registerUser(service) {
     return [registerRes.body.user, registerRes.body.token];
 }
 
-//TODO update this test after delete user functionality is finished.
 test("delete user", async () => {
     const res = await request(app)
         .delete("/api/user/" + testUser.id)

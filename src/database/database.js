@@ -107,6 +107,28 @@ class DB {
     }
   }
 
+  async listUsers(page = 1, limit = 10, nameFilter = '') {
+    const connection = await this.getConnection();
+    try {
+      const offset = this.getOffset(page, limit);
+      nameFilter = `%${nameFilter}%`;
+      const users = await this.query(
+        connection,
+        `SELECT id, name, email FROM user WHERE name LIKE ? LIMIT ${offset}, ${limit}`,
+        [nameFilter]
+      );
+      for (const user of users) {
+        const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
+        user.roles = roleResult.map((r) => {
+          return { objectId: r.objectId || undefined, role: r.role };
+        });
+      }
+      return users;
+    } finally {
+      connection.end();
+    }
+  }
+
   async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
@@ -315,7 +337,7 @@ class DB {
   }
 
   getOffset(currentPage = 1, listPerPage) {
-    return (currentPage - 1) * [listPerPage];
+    return (currentPage - 1) * listPerPage;
   }
 
   getTokenSignature(token) {
