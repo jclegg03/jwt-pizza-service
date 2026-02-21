@@ -46,6 +46,9 @@ test("update user (self)", async () => {
 
 test("update user (duplicate email)", async () => {
     const updatedUser = { name: randomName(), email: "a@jwt.com", password: "M0r3$ecure1" }
+    await request(app)
+        .post("/api/auth")
+        .send(updatedUser);
 
     const res = await request(app)
         .put("/api/user/" + testUser.id)
