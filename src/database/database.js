@@ -133,12 +133,17 @@ class DB {
     const connection = await this.getConnection();
     try {
       const params = [];
+      if (email) {
+        // Check if email is already taken by another user
+        const emailResult = await this.query(connection, `SELECT id FROM user WHERE email=? AND id<>?`, [email, userId]);
+        if (emailResult.length > 0) {
+          throw new StatusCodeError('Email already taken', 409);
+        }
+        params.push(`email='${email}'`);
+      }
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
         params.push(`password='${hashedPassword}'`);
-      }
-      if (email) {
-        params.push(`email='${email}'`);
       }
       if (name) {
         params.push(`name='${name}'`);

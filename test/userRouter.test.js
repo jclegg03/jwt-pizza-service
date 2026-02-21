@@ -44,6 +44,18 @@ test("update user (self)", async () => {
     expect(res.body.user).toEqual(updatedUser);
 });
 
+test("update user (duplicate email)", async () => {
+    const updatedUser = { name: randomName(), email: "a@jwt.com", password: "M0r3$ecure1" }
+
+    const res = await request(app)
+        .put("/api/user/" + testUser.id)
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send(updatedUser)
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toBe("Email already taken");
+});
+
 test('list users unauthorized', async () => {
     const listUsersRes = await request(app).get('/api/user');
     expect(listUsersRes.status).toBe(401);
@@ -57,6 +69,19 @@ test('list users', async () => {
         .set('Authorization', 'Bearer ' + user.token);
 
     expect(listUsersRes.status).toBe(200);
+    expect(listUsersRes.body.length).toBe(10);
+
+    expect(listUsersRes.body[0]).toHaveProperty('id');
+    expect(listUsersRes.body[0]).toHaveProperty('name');
+    expect(listUsersRes.body[0]).toHaveProperty('email');
+    expect(listUsersRes.body[0]).toHaveProperty('roles');
+
+    const listUsersRes2 = await request(app)
+        .get('/api/user?page=2&limit=5')
+        .set('Authorization', 'Bearer ' + user.token);
+
+    expect(listUsersRes2.status).toBe(200);
+    expect(listUsersRes2.body.length).toBe(5);
 });
 
 async function registerUser(service) {
