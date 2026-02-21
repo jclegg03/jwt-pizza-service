@@ -67,14 +67,15 @@ test('list users unauthorized', async () => {
 test('list users', async () => {
     // const [user, userToken] = await registerUser(request(app));
     const user = await createAdminUser();
-    const listUsersRes = await request(app)
-        .get('/api/user')
-        .set('Authorization', 'Bearer ' + user.token);
-    
+
     // Register 15 users to test pagination
     for (let i = 0; i < 15; i++) {
         await registerUser(request(app));
     }
+
+    const listUsersRes = await request(app)
+        .get('/api/user')
+        .set('Authorization', 'Bearer ' + user.token);
 
     expect(listUsersRes.status).toBe(200);
     expect(listUsersRes.body.length).toBe(10);
