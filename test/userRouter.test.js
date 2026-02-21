@@ -67,6 +67,11 @@ test('list users', async () => {
     const listUsersRes = await request(app)
         .get('/api/user')
         .set('Authorization', 'Bearer ' + user.token);
+    
+    // Register 15 users to test pagination
+    for (let i = 0; i < 15; i++) {
+        await registerUser(request(app));
+    }
 
     expect(listUsersRes.status).toBe(200);
     expect(listUsersRes.body.length).toBe(10);
@@ -84,17 +89,17 @@ test('list users', async () => {
     expect(listUsersRes2.body.length).toBe(5);
 });
 
-// async function registerUser(service) {
-//     const testUser = {
-//         name: 'pizza diner',
-//         email: `${randomName()}@test.com`,
-//         password: 'a',
-//     };
-//     const registerRes = await service.post('/api/auth').send(testUser);
-//     registerRes.body.user.password = testUser.password;
+async function registerUser(service) {
+    const testUser = {
+        name: 'pizza diner',
+        email: `${randomName()}@test.com`,
+        password: 'a',
+    };
+    const registerRes = await service.post('/api/auth').send(testUser);
+    registerRes.body.user.password = testUser.password;
 
-//     return [registerRes.body.user, registerRes.body.token];
-// }
+    return [registerRes.body.user, registerRes.body.token];
+}
 
 test("delete user", async () => {
     const res = await request(app)
