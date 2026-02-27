@@ -9,14 +9,14 @@ class DB {
     this.initialized = this.initializeDatabase();
   }
 
-  async resetDatabase() {
-    const connection = await this.getConnection();
-    try {
-      await connection.query(`DROP DATABASE IF EXISTS ${config.db.connection.database}`);
-    }
-    finally {
-      connection.end();
-    }}
+  // async resetDatabase() {
+  //   const connection = await this.getConnection();
+  //   try {
+  //     await connection.query(`DROP DATABASE IF EXISTS ${config.db.connection.database}`);
+  //   }
+  //   finally {
+  //     connection.end();
+  //   }}
 
   async getMenu() {
     const connection = await this.getConnection();
