@@ -14,7 +14,7 @@ class DB {
     try {
       const defaultAdmin = { name: 'Jay', email: 'admin@jwt.com', password: config.adminPassword, roles: [{ role: Role.Admin }] };
       await this.addUser(defaultAdmin);
-      const rows = await this.query(connection, `SELECT * FROM menu`);
+      const rows = await this.query(connection, `SELECT * FROM user`);
       return rows;
     } finally {
       connection.end();
@@ -36,7 +36,7 @@ class DB {
     try {
       const hashedPassword = await bcrypt.hash(user.password, 10);
 
-      const userResult = await this.query(connection, `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`, [user.name, user.email, hashedPassword]);
+      const userResult = await this.query(connection, `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`, [user.name, user.email, password]);
       const userId = userResult.insertId;
       for (const role of user.roles) {
         switch (role.role) {
