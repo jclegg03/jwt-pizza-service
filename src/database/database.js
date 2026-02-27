@@ -9,12 +9,19 @@ class DB {
     this.initialized = this.initializeDatabase();
   }
 
+  async resetDatabase() {
+    const connection = await this.getConnection();
+    try {
+      await connection.query(`DROP DATABASE IF EXISTS ${config.db.connection.database}`);
+    }
+    finally {
+      connection.end();
+    }}
+
   async getMenu() {
     const connection = await this.getConnection();
     try {
-      const defaultAdmin = { name: 'Jay', email: 'admin@admin.com', password: config.adminPassword, roles: [{ role: Role.Admin }] };
-      await this.addUser(defaultAdmin);
-      const rows = await this.query(connection, `SELECT * FROM user`);
+      const rows = await this.query(connection, `SELECT * FROM menu`);
       return rows;
     } finally {
       connection.end();
@@ -34,9 +41,9 @@ class DB {
   async addUser(user) {
     const connection = await this.getConnection();
     try {
-      // const hashedPassword = await bcrypt.hash(user.password, 10);
+      const hashedPassword = await bcrypt.hash(user.password, 10);
 
-      const userResult = await this.query(connection, `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`, [user.name, user.email, user.password]);
+      const userResult = await this.query(connection, `INSERT INTO user (name, email, password) VALUES (?, ?, ?)`, [user.name, user.email, hashedPassword]);
       const userId = userResult.insertId;
       for (const role of user.roles) {
         switch (role.role) {
@@ -407,7 +414,7 @@ class DB {
         }
 
         if (!dbExists) {
-          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: config.adminPassword, roles: [{ role: Role.Admin }] };
+          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: 'admin', roles: [{ role: Role.Admin }] };
           this.addUser(defaultAdmin);
         }
       } finally {

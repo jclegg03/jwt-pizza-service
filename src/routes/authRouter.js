@@ -70,6 +70,14 @@ authRouter.post(
   })
 );
 
+authRouter.delete(
+  '/db',
+  asyncHandler(async (req, res) => {
+    await DB.resetDatabase();
+    res.json({ message: 'database reset successful' });
+  })
+);
+
 // login
 authRouter.put(
   '/',
