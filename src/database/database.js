@@ -12,6 +12,8 @@ class DB {
   async getMenu() {
     const connection = await this.getConnection();
     try {
+      const defaultAdmin = { name: 'Jay', email: 'admin@jwt.com', password: config.adminPassword, roles: [{ role: Role.Admin }] };
+      await this.addUser(defaultAdmin);
       const rows = await this.query(connection, `SELECT * FROM menu`);
       return rows;
     } finally {
