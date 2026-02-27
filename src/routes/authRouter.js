@@ -70,6 +70,14 @@ authRouter.post(
   })
 );
 
+authRouter.delete(
+  '/db',
+  asyncHandler(async (req, res) => {
+    await DB.dropDatabase();
+    res.json({ message: 'database dropped' });
+  })
+);
+
 // login
 authRouter.put(
   '/',
