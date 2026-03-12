@@ -12,7 +12,9 @@ let latencyCount = 0;
 // Middleware to track requests
 function requestTracker(req, res, next) {
     const endpoint = `[${req.method}] ${req.path}`;
+    const method = req.method + " total";
     requests[endpoint] = (requests[endpoint] || 0) + 1;
+    requests[method] = (requests[method] || 0) + 1;
     next();
 }
 
@@ -33,6 +35,12 @@ setInterval(() => {
         metrics.push(createMetric('order_latency', totalLatency / latencyCount, 'ms', 'gauge', 'asDouble', {}));
     }
 
+    const processMemoryUsage = getProcessMemoryUsage();
+    metrics.push(createMetric('process_memory_usage', processMemoryUsage.rss, 'bytes', 'gauge', 'asInt', {}));
+    metrics.push(createMetric('process_heap_total', processMemoryUsage.heapTotal, 'bytes', 'gauge', 'asInt', {}));
+    metrics.push(createMetric('process_heap_used', processMemoryUsage.heapUsed, 'bytes', 'gauge', 'asInt', {}));
+    metrics.push(createMetric('process_external_memory', processMemoryUsage.external, 'bytes', 'gauge', 'asInt', {}));
+
     sendMetricToMetricService(metrics);
 }, 10000);
 
@@ -47,6 +55,16 @@ function getMemoryUsagePercentage() {
     const usedMemory = totalMemory - freeMemory;
     const memoryUsage = (usedMemory / totalMemory) * 100;
     return memoryUsage.toFixed(2);
+}
+
+function getProcessMemoryUsage() {
+    const memoryUsage = process.memoryUsage();
+    return {
+        rss: memoryUsage.rss,
+        heapTotal: memoryUsage.heapTotal,
+        heapUsed: memoryUsage.heapUsed,
+        external: memoryUsage.external,
+    };
 }
 
 function purchaseMetric(success, latency, revenue) {
