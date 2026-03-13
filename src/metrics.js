@@ -8,6 +8,7 @@ let failedPurchases = 0;
 let totalRevenue = 0;
 let totalLatency = 0;
 let latencyCount = 0;
+let currentUsers = 0;
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
@@ -18,6 +19,17 @@ function requestTracker(req, res, next) {
     next();
 }
 
+function incrementCurrentUsers() {
+    currentUsers++;
+}
+
+function decrementCurrentUsers() {
+    currentUsers--;
+
+    if (currentUsers < 0) {
+        //TODO figure out what to do here
+    }
+}
 // This will send metrics to the metrics endpoint every 10 seconds
 setInterval(() => {
     const metrics = [];
@@ -40,6 +52,8 @@ setInterval(() => {
     metrics.push(createMetric('process_heap_total', processMemoryUsage.heapTotal, 'bytes', 'gauge', 'asInt', {}));
     metrics.push(createMetric('process_heap_used', processMemoryUsage.heapUsed, 'bytes', 'gauge', 'asInt', {}));
     metrics.push(createMetric('process_external_memory', processMemoryUsage.external, 'bytes', 'gauge', 'asInt', {}));
+
+    metrics.push(createMetric('current_users', currentUsers, '1', 'gauge', 'asInt', {}));
 
     sendMetricToMetricService(metrics);
 }, 10000);
@@ -138,4 +152,4 @@ function sendMetricToMetricService(metrics) {
         });
 }
 
-module.exports = { requestTracker, purchaseMetric };
+module.exports = { requestTracker, purchaseMetric, incrementCurrentUsers, decrementCurrentUsers };
