@@ -27,9 +27,10 @@ function decrementCurrentUsers() {
     currentUsers--;
 
     if (currentUsers < 0) {
-        //TODO figure out what to do here
+        currentUsers = 0;
     }
 }
+
 // This will send metrics to the metrics endpoint every 10 seconds
 setInterval(() => {
     const metrics = [];
@@ -152,4 +153,4 @@ function sendMetricToMetricService(metrics) {
         });
 }
 
-module.exports = { requestTracker, purchaseMetric, incrementCurrentUsers, decrementCurrentUsers };
+module.exports = { requestTracker, purchaseMetric, decrementCurrentUsers, incrementCurrentUsers };
