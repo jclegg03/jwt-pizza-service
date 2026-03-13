@@ -3,11 +3,13 @@ const os = require('os');
 
 // Metrics stored in memory
 const requests = {};
+const latencies = {};
+const latencyCounts = {};
 let successfulPurchases = 0;
 let failedPurchases = 0;
 let totalRevenue = 0;
-let totalLatency = 0;
-let latencyCount = 0;
+let totalPurchaseLatency = 0;
+let purchaseLatencyCount = 0;
 let currentUsers = 0;
 let successfulLogins = 0;
 let failedLogins = 0;
@@ -18,6 +20,18 @@ function requestTracker(req, res, next) {
     const method = req.method + " total";
     requests[endpoint] = (requests[endpoint] || 0) + 1;
     requests[method] = (requests[method] || 0) + 1;
+    next();
+}
+
+// Middleware to track latency
+function latencyTracker(req, res, next) {
+    const start = Date.now();
+    res.on('finish', () => {
+        const latency = Date.now() - start;
+        const endpoint = `[${req.method}] ${req.originalUrl}`;
+        latencies[endpoint] = (latencies[endpoint] || 0) + latency;
+        latencyCounts[endpoint] = (latencyCounts[endpoint] || 0) + 1;
+    });
     next();
 }
 
@@ -50,6 +64,15 @@ setInterval(() => {
         metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
     });
 
+    // Endpoint latencies
+    Object.keys(latencies).forEach((endpoint) => {
+        if (latencyCounts[endpoint] > 0) {
+            metrics.push(createMetric('latency_avg', latencies[endpoint] / latencyCounts[endpoint], 'ms', 'gauge', 'asDouble', { endpoint }));
+        }
+        latencies[endpoint] = 0;
+        latencyCounts[endpoint] = 0;
+    });
+
     // system cpu and memory usage
     metrics.push(createMetric('cpu_usage', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
     metrics.push(createMetric('memory_usage', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
@@ -58,8 +81,10 @@ setInterval(() => {
     metrics.push(createMetric('successful_purchases', successfulPurchases, '1', 'sum', 'asInt', {}));
     metrics.push(createMetric('failed_purchases', failedPurchases, '1', 'sum', 'asInt', {}));
     metrics.push(createMetric('total_revenue', totalRevenue, 'USD', 'sum', 'asDouble', {}));
-    if (latencyCount > 0) {
-        metrics.push(createMetric('order_latency', totalLatency / latencyCount, 'ms', 'gauge', 'asDouble', {}));
+    if (purchaseLatencyCount > 0) {
+        metrics.push(createMetric('order_latency', totalPurchaseLatency / purchaseLatencyCount, 'ms', 'gauge', 'asDouble', {}));
+        totalPurchaseLatency = 0;
+        purchaseLatencyCount = 0;
     }
 
     // process memory usage
@@ -107,8 +132,8 @@ function purchaseMetric(success, latency, revenue) {
     } else {
         failedPurchases++;
     }
-    totalLatency += latency;
-    latencyCount++;
+    totalPurchaseLatency += latency;
+    purchaseLatencyCount++;
 }
 
 function createMetric(metricName, metricValue, metricUnit, metricType, valueType, attributes) {
@@ -177,5 +202,6 @@ module.exports = {
     decrementCurrentUsers, 
     incrementCurrentUsers, 
     incrementSuccessfulLogins, 
-    incrementFailedLogins
+    incrementFailedLogins,
+    latencyTracker
 };
