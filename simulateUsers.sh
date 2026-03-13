@@ -68,6 +68,18 @@ while true; do
 done &
 pid4=$!
 
+while true; do
+  token=$(login "d@jwt.com" "diner")
+  echo "Login diner..." $( [ -z "$token" ] && echo "false" || echo "true" )
+  result=$(execute_curl "-X GET $host/api/order -H 'Content-Type: application/json' -H \"Authorization: Bearer $token\"")
+  echo "Looked at previous orders..." $result
+  sleep 2
+  result=$(execute_curl "-X DELETE $host/api/auth -H \"Authorization: Bearer $token\"")
+  echo "Logging out diner..." $result
+  sleep 3
+done &
+pid6=$!
+
 # Simulate a failed pizza order every 5 minutes
 while true; do
   token=$(login "d@jwt.com" "diner")
@@ -89,4 +101,4 @@ pid5=$!
 
 
 # Wait for the background processes to complete
-wait $pid1 $pid2 $pid3 $pid4 $pid5
+wait $pid1 $pid2 $pid3 $pid4 $pid5 $pid6
