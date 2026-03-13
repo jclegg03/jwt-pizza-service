@@ -68,6 +68,7 @@ while true; do
 done &
 pid4=$!
 
+# Simulate a diner looking at their previous orders every 5 seconds
 while true; do
   token=$(login "d@jwt.com" "diner")
   echo "Login diner..." $( [ -z "$token" ] && echo "false" || echo "true" )
