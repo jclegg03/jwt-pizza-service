@@ -11,7 +11,7 @@ host=$1
 # Trap SIGINT (Ctrl+C) to execute the cleanup function
 cleanup() {
   echo "Terminating background processes..."
-  kill $pid1 $pid2 $pid3 $pid4 $pid5
+  kill $pid1 $pid2 $pid3 $pid4 $pid5 $pid6
   exit 0
 }
 trap cleanup SIGINT
@@ -78,7 +78,7 @@ while true; do
   echo "Logging out diner..." $result
   sleep 3
 done &
-pid6=$!
+pid5=$!
 
 # Simulate a failed pizza order every 5 minutes
 while true; do
@@ -97,7 +97,7 @@ while true; do
   echo "Logging out hungry diner..." $result
   sleep 295
 done &
-pid5=$!
+pid6=$!
 
 
 # Wait for the background processes to complete
