@@ -56,3 +56,14 @@ test("Get orders empty", async () => {
     expect(res.status).toBe(200);
     expect(res.body.orders).toHaveLength(0);
 });
+
+test("Create order", async () => {
+    const order = { franchiseId: 1, storeId: 1, items: [{ menuId: 1, description: 'Veggie', price: 0.05 }] };
+    const postRes = await request(app)
+        .post("/api/order")
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send(order);
+    
+    expect(postRes.status).toBe(200);
+    expect(postRes.body.order).toEqual(expect.objectContaining(order));
+});
