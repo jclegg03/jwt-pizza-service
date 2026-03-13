@@ -9,6 +9,8 @@ let totalRevenue = 0;
 let totalLatency = 0;
 let latencyCount = 0;
 let currentUsers = 0;
+let successfulLogins = 0;
+let failedLogins = 0;
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
@@ -31,16 +33,28 @@ function decrementCurrentUsers() {
     }
 }
 
+function incrementSuccessfulLogins() {
+    successfulLogins++;
+}
+
+function incrementFailedLogins() {
+    failedLogins++;
+}
+
 // This will send metrics to the metrics endpoint every 10 seconds
 setInterval(() => {
     const metrics = [];
+
+    // Endpoint request counts
     Object.keys(requests).forEach((endpoint) => {
         metrics.push(createMetric('requests', requests[endpoint], '1', 'sum', 'asInt', { endpoint }));
     });
 
+    // system cpu and memory usage
     metrics.push(createMetric('cpu_usage', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {}));
     metrics.push(createMetric('memory_usage', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {}));
 
+    // purchase metrics
     metrics.push(createMetric('successful_purchases', successfulPurchases, '1', 'sum', 'asInt', {}));
     metrics.push(createMetric('failed_purchases', failedPurchases, '1', 'sum', 'asInt', {}));
     metrics.push(createMetric('total_revenue', totalRevenue, 'USD', 'sum', 'asDouble', {}));
@@ -48,13 +62,17 @@ setInterval(() => {
         metrics.push(createMetric('order_latency', totalLatency / latencyCount, 'ms', 'gauge', 'asDouble', {}));
     }
 
+    // process memory usage
     const processMemoryUsage = getProcessMemoryUsage();
     metrics.push(createMetric('process_memory_usage', processMemoryUsage.rss, 'bytes', 'gauge', 'asInt', {}));
     metrics.push(createMetric('process_heap_total', processMemoryUsage.heapTotal, 'bytes', 'gauge', 'asInt', {}));
     metrics.push(createMetric('process_heap_used', processMemoryUsage.heapUsed, 'bytes', 'gauge', 'asInt', {}));
     metrics.push(createMetric('process_external_memory', processMemoryUsage.external, 'bytes', 'gauge', 'asInt', {}));
 
+    // login metrics
     metrics.push(createMetric('current_users', currentUsers, '1', 'gauge', 'asInt', {}));
+    metrics.push(createMetric('successful_logins', successfulLogins, '1', 'sum', 'asInt', {}));
+    metrics.push(createMetric('failed_logins', failedLogins, '1', 'sum', 'asInt', {}));
 
     sendMetricToMetricService(metrics);
 }, 10000);
@@ -153,4 +171,11 @@ function sendMetricToMetricService(metrics) {
         });
 }
 
-module.exports = { requestTracker, purchaseMetric, decrementCurrentUsers, incrementCurrentUsers };
+module.exports = {
+    requestTracker, 
+    purchaseMetric, 
+    decrementCurrentUsers, 
+    incrementCurrentUsers, 
+    incrementSuccessfulLogins, 
+    incrementFailedLogins
+};
