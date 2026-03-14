@@ -61,7 +61,12 @@ jobs:
               endpointUrl: '${{ secrets.METRICS_ENDPOINT_URL }}',
               accountId: '${{ secrets.METRICS_ACCOUNT_ID }}',
               apiKey: '${{ secrets.METRICS_API_KEY }}',
-            }
+            },
+            loggingConfig: {
+              endpointUrl: '${{ secrets.LOGGING_URL }}',
+              apiKey: '${{ secrets.LOGGING_API_KEY }}',
+              accountId: '${{ secrets.LOGGING_ACCOUNT_ID }}',
+            },
           };" > src/config.js
       
       - name: Tests
