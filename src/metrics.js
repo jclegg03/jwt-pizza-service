@@ -30,12 +30,14 @@ function getMemoryUsagePercentage() {
 
 function addActiveUser(userId) {
     active_users[userId] = (active_users[userId] || 0) + 1;
+    console.log("added active user");
 }
 
 function removeActiveUser(userId) {
     active_users[userId] = (active_users[userId] || 0) - 1;
     if (active_users[userId] <= 0) {
         delete active_users[userId];
+        console.log("deleted active user");
     }
 }
 
