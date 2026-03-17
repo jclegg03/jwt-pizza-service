@@ -2,6 +2,7 @@ const express = require("express");
 const { StatusCodeError, asyncHandler } = require("../endpointHelper.js");
 const { DB, Role } = require("../database/database.js");
 const { authRouter, setAuth } = require("./authRouter.js");
+const {requestTracker} = require("../metrics");
 
 const userRouter = express.Router();
 
@@ -62,6 +63,7 @@ userRouter.docs = [
   },
 ];
 
+userRouter.use(requestTracker);
 // getUser
 userRouter.get(
   "/me",
