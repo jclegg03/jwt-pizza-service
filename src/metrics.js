@@ -30,26 +30,26 @@ function getMemoryUsagePercentage() {
 
 function addActiveUser(userId) {
     active_users[userId] = (active_users[userId] || 0) + 1;
-    console.log("added active user");
 }
 
 function removeActiveUser(userId) {
     active_users[userId] = (active_users[userId] || 0) - 1;
     if (active_users[userId] <= 0) {
         delete active_users[userId];
-        console.log("deleted active user");
     }
 }
 
-function addPizzaPurchase(failed, latency, revenue) {
+function addPizzaPurchase(failed, latency, items) {
     if (failed) {
         pizza_fails += 1
     } else {
-        pizza_latency += latency;
-        pizzas_purchased += 1;
-        pizza_period_purchase += 1;
-        pizza_revenue += revenue;
+        for (let i = 0; i < items.length; i++) {
+            pizzas_purchased += 1;
+            pizza_revenue += items[i].price
+        }
     }
+    pizza_period_purchase += 1;
+    pizza_latency += latency;
 }
 
 function addLoginMetric(failed) {
