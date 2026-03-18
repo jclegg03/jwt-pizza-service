@@ -1,5 +1,5 @@
 const config = require("./src/config.js");
-const BASE_URL = +config.deploymentUrl + "/api";
+const BASE_URL = config.deploymentUrl + "/api";
 
 let menu = []
 const franchiseId = 1;
