@@ -9,7 +9,7 @@ function makeTestUser() {
   i++;
   return {
     name: `user ${i}`,
-    email: "reg@test.com",
+    email: `reg${i}@test.com`,
     password: Math.random().toString(36).slice(2),
   };
 }
@@ -24,7 +24,6 @@ function makeTestFranchise(email) {
 }
 
 async function registerUser(user) {
-  user.email = Math.random().toString(36).substring(2, 12) + "@test.com";
   const registerRes = await request(app).post("/api/auth").send(user);
   expect(registerRes.status).toBe(200);
   const token = registerRes.body.token;

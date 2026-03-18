@@ -14,27 +14,29 @@ describe("authRouter", () => {
   describe("register", () => {
     it("fails without email", async () => {
       //register fails without email (assume others will also fail)
-      const badUser = { name: "pizza diner", password: "a" };
+      const badUser = {name: "pizza diner", password: "a"};
       const badRegisterRes = await request(app).post("/api/auth").send(badUser);
       expect(badRegisterRes.status).toBe(400);
     });
 
     it("succeeds when appropriate and returns valid authtoken", async () => {
-      const registerRes = await request(app).post("/api/auth").send(testUser);
+      const registerUser = makeTestUser();
+      const registerRes = await request(app).post("/api/auth").send(registerUser);
       expect(registerRes.status).toBe(200);
       const testRegisterAuth = registerRes.body.token;
-      expect(testRegisterAuth).toMatch(
-        /^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/,
-      );
+      expect(testRegisterAuth).toMatch(/^[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*\.[a-zA-Z0-9\-_]*$/,);
       const getUserRes = await request(app)
         .get("/api/user/me")
-        .set({ Authorization: `Bearer ${testUserAuthToken}` });
-
+        .set({Authorization: `Bearer ${testUserAuthToken}`});
       expect(getUserRes.status).toBe(200);
     });
 
-    //TODO: ensure that users cannot register the same email twice!
+    it("prevents users from registering twice", async () => {
+      const registerRes = await request(app).post("/api/auth").send(testUser);
+      expect(registerRes.status).toBe(409);
+    });
   });
+
   describe("login", () => {
     it("returns appropriately", async () => {
       const loginRes = await request(app).put("/api/auth").send(testUser);
