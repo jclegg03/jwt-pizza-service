@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const config = require("../config.js");
 const { asyncHandler } = require("../endpointHelper.js");
 const { DB, Role } = require("../database/database.js");
-const {addLoginMetric, addActiveUser, removeActiveUser, requestTracker} = require("../metrics");
+const {addLoginMetric, requestTracker} = require("../metrics");
 
 const authRouter = express.Router();
 
@@ -54,8 +54,12 @@ async function setAuthUser(req, res, next) {
   const token = readAuthToken(req);
   if (token) {
     try {
-      if (await DB.isLoggedIn(token)) {
+      const authRow = await DB.getFromToken(token)
+      if (authRow != null) {
         // Check the database to make sure the token is valid.
+        if (Date.now() - new Date(authRow.lastActiveTime) > (config.authTimeoutValue * 60_000)) {
+          return res.status(401).json({message: 'Token expired'});
+        }
         req.user = jwt.verify(token, config.jwtSecret);
         req.user.isRole = (role) =>
           !!req.user.roles.find((r) => r.role === role);
@@ -128,8 +132,16 @@ authRouter.put(
 // logout
 authRouter.delete(
   "/",
-  authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const token = readAuthToken(req);
+    if (!token) {
+      return res.status(401).send({message: "unauthorized"})
+    }
+    try {
+      req.user = jwt.verify(token, config.jwtSecret);
+    } catch {
+      return res.status(401).send({message: "unauthorized"});
+    }
     await clearAuth(req);
     res.json({ message: "logout successful" });
       removeActiveUser(req.user.id);

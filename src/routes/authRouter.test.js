@@ -1,6 +1,8 @@
 const request = require("supertest");
 const { makeTestUser, registerUser } = require("./testHelpers");
 const app = require("../service");
+const {DB} = require("../database/database");
+const config = require("../config");
 
 const testUser = makeTestUser();
 
@@ -76,4 +78,39 @@ describe("authRouter", () => {
 
     //TODO: ensure fails appropriately with wrong authtoken
   });
+
+  describe("authtoken", () => {
+    it("times out appropriately", async () => {
+      const spy = jest.spyOn(DB, 'getFromToken').mockResolvedValueOnce({
+        token: "whatever",
+        userId: 1,
+        lastActiveTime: new Date(Date.now() - (config.authTimeoutValue + 1) * 60 * 1000) // 21 minutes ago
+      });
+
+      const res = await request(app)
+        .get("/api/user/me")
+        .set({Authorization: `Bearer ${testUserAuthToken}`});
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe('Token expired');
+
+      spy.mockRestore();
+    })
+    it("allows logout when expired", async () => {
+      const spy = jest.spyOn(DB, 'getFromToken').mockResolvedValueOnce({
+        token: `${testUserAuthToken}`,
+        userId: 1,
+        lastActiveTime: new Date(Date.now() - (config.authTimeoutValue + 1) * 60 * 1000) // 21 minutes ago
+      });
+
+      const res = await request(app)
+        .get("/api/user/me")
+        .set({Authorization: `Bearer ${testUserAuthToken}`});
+
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe('Token expired');
+
+      spy.mockRestore();
+    })
+  })
 });

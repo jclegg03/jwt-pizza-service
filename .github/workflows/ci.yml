@@ -41,6 +41,7 @@ jobs:
           echo "const { Role } = require('./model/model');
           module.exports = {
             jwtSecret: '${{ secrets.JWT_SECRET }}',
+            authTimeoutValue: 20,
             db: {
               connection: {
                 host: '127.0.0.1',

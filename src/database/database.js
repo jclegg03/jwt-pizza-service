@@ -189,16 +189,19 @@ class DB {
     }
   }
 
-  async isLoggedIn(token) {
+  async getFromToken(token) {
     token = this.getTokenSignature(token);
     const connection = await this.getConnection();
     try {
       const authResult = await this.query(
         connection,
-        `SELECT userId FROM auth WHERE token=?`,
+        `SELECT *
+         FROM auth
+         WHERE token = ?`,
         [token],
       );
-      return authResult.length > 0;
+      if (authResult.length === 0) return null;
+      else return authResult[0];
     } finally {
       connection.end();
     }
