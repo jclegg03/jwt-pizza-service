@@ -2,24 +2,20 @@ const request = require("supertest");
 const app = require("../service");
 const config = require("../config");
 
-const testStore = { name: "test store " };
+const testStore = {name: "test store "};
 
 let i = 0;
+
 function makeTestUser() {
   i++;
   return {
-    name: `user ${i}`,
-    email: `reg${i}@test.com`,
-    password: Math.random().toString(36).slice(2),
+    name: `user ${i}`, email: `reg${i}@test.com`, password: Math.random().toString(36).slice(2),
   };
 }
 
 function makeTestFranchise(email) {
   return {
-    stores: [],
-    id: "",
-    name: "test franchise ",
-    admins: [{ email: email }],
+    stores: [], id: "", name: "test franchise ", admins: [{email: email}],
   };
 }
 
@@ -28,46 +24,33 @@ async function registerUser(user) {
   expect(registerRes.status).toBe(200);
   const token = registerRes.body.token;
   const id = registerRes.body.user.id;
-  return { token, id };
+  return {token, id};
 }
 
 async function getAdminToken() {
-  let testAdminAuthToken = (
-    await request(app).put("/api/auth").send(config.defaultAdmin)
-  ).body.token;
-  return testAdminAuthToken;
+  return (await request(app).put("/api/auth").send(config.defaultAdmin)).body.token;
 }
 
 async function createFranchise(adminToken, testFranchise, status = 200) {
   testFranchise.name += "I";
   const createFranchiseRes = await request(app)
     .post("/api/franchise/")
-    .set({ Authorization: `Bearer ${adminToken}` })
+    .set({Authorization: `Bearer ${adminToken}`})
     .send(testFranchise);
   expect(createFranchiseRes.status).toBe(status);
   return createFranchiseRes;
 }
 
-async function createStore(
-  franchiseAuthtoken,
-  franchiseInstance,
-  status = 200,
-) {
+async function createStore(franchiseAuthtoken, franchiseInstance, status = 200,) {
   testStore.name += "I";
   const createStoreRes = await request(app)
     .post(`/api/franchise/${franchiseInstance.id}/store`)
-    .set({ Authorization: `Bearer ${franchiseAuthtoken}` })
-    .send({ name: testStore.name });
+    .set({Authorization: `Bearer ${franchiseAuthtoken}`})
+    .send({name: testStore.name});
   expect(createStoreRes.status).toBe(status);
   return createStoreRes; //body is testStore
 }
 
 module.exports = {
-  makeTestUser,
-  registerUser,
-  getAdminToken,
-  createFranchise,
-  createStore,
-  testStore,
-  makeTestFranchise,
+  makeTestUser, registerUser, getAdminToken, createFranchise, createStore, testStore, makeTestFranchise,
 };
