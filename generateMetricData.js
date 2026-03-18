@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:3000/api";
+const config = require("./src/config.js");
+const BASE_URL = +config.deploymentUrl + "/api";
 
 let menu = []
 const franchiseId = 1;
@@ -145,13 +146,15 @@ async function simulateDiner() {
     const endTime = Date.now() + 60 * 60 * 1000; // 60 minutes in ms
     let token = undefined
     while (Date.now() < endTime) {
+        let action;
         if (token) {
-            token = await getRandomAction(loggedInDinerActions)(token);
+            action = getRandomAction(loggedInDinerActions);
         } else {
-            token = await getRandomAction(loggedOutActions)();
+            action = getRandomAction(loggedOutActions);
         }
+        console.log(action.toString());
+        token = await action(token);
         await sleep(3_000);
-        console.log(token);
     }
 }
 

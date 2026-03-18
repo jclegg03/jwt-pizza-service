@@ -41,7 +41,7 @@ function removeActiveUser(userId) {
 
 function addPizzaPurchase(failed, latency, items) {
     if (failed) {
-        pizza_fails += 1
+        pizza_fails += items.length;
     } else {
         for (let i = 0; i < items.length; i++) {
             pizzas_purchased += 1;
