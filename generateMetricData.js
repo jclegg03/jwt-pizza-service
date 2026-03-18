@@ -97,11 +97,11 @@ async function makeBadOrder(token) {
 }
 
 const loggedInDinerActions = [
-    {weight: 10, fn: async (token) => getMenu(token)},
-    {weight: 2, fn: async (token) => logout(token)},
-    {weight: 7, fn: async (token) => orderPizza(token)},
+    {weight: 100, fn: async (token) => getMenu(token)},
+    {weight: 20, fn: async (token) => logout(token)},
+    {weight: 50, fn: async (token) => orderPizza(token)},
     {weight: 1, fn: async (token) => makeBadOrder(token)},
-    {weight: 10, fn: async (token) => Promise.resolve(token)}, // do nothing
+    {weight: 100, fn: async (token) => Promise.resolve(token)}, // do nothing
 ]
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -126,9 +126,9 @@ async function registerNewUser() {
 }
 
 const loggedOutActions = [
-    {weight: 5, fn: async () => Promise.resolve()},
-    {weight: 5, fn: async () => loginUser()},
-    {weight: 1, fn: async () => registerNewUser()},
+    {weight: 50, fn: async () => Promise.resolve()},
+    {weight: 50, fn: async () => loginUser()},
+    {weight: 5, fn: async () => registerNewUser()},
     {weight: 1, fn: async () => badLogin()}
 ]
 
