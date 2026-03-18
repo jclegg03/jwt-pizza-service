@@ -44,9 +44,9 @@ function addPizzaPurchase(failed, latency, items) {
         pizza_fails += items.length;
     } else {
         for (let i = 0; i < items.length; i++) {
-            pizzas_purchased += 1;
             pizza_revenue += items[i].price
         }
+        pizzas_purchased += items.length
     }
     pizza_period_purchase += items.length;
     pizza_latency += latency;
