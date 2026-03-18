@@ -127,7 +127,7 @@ function sendMetricsToGrafana(metrics) {
 
 
 function sendMetricsPeriodically(period) {
-    setInterval(() => {
+    const timer = setInterval(() => {
         try {
             const metrics = [];
             //http method metrics
@@ -167,6 +167,7 @@ function sendMetricsPeriodically(period) {
             console.log('Error sending metrics', error);
         }
     }, period);
+    timer.unref()
 }
 
 sendMetricsPeriodically(10_000); //send metrics every 10 seconds
