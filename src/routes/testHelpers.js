@@ -24,11 +24,21 @@ async function registerUser(user) {
   expect(registerRes.status).toBe(200);
   const token = registerRes.body.token;
   const id = registerRes.body.user.id;
+  if (!token) {
+    throw new Error("token missing from response");
+  }
   return {token, id};
 }
 
 async function getAdminToken() {
-  return (await request(app).put("/api/auth").send(config.defaultAdmin)).body.token;
+  const res = await request(app).put("/api/auth").send(config.defaultAdmin)
+  if (res.status !== 200) {
+    throw new Error("could not get admin token: " + res.status + "\nmessage: " + res.body);
+  }
+  if (!res.body.token) {
+    throw new Error("token missing from response");
+  }
+  return res.body.token;
 }
 
 async function createFranchise(adminToken, testFranchise, status = 200) {
