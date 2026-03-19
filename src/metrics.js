@@ -1,5 +1,6 @@
 const config = require('./config');
 const os = require('os');
+const {DB} = require("./database/database.js");
 
 // Metrics stored in memory
 const requests = {};
@@ -12,7 +13,6 @@ let pizza_period_requests = 0;
 let pizza_revenue = 0;
 let successful_logins = 0;
 let failed_logins = 0;
-let active_users = {}
 
 function getCpuUsagePercentage() {
     const cpuUsage = os.loadavg()[0] / os.cpus().length;
@@ -25,18 +25,6 @@ function getMemoryUsagePercentage() {
     const usedMemory = totalMemory - freeMemory;
     const memoryUsage = (usedMemory / totalMemory) * 100;
     return memoryUsage.toFixed(2);
-}
-
-
-function addActiveUser(userId) {
-    active_users[userId] = (active_users[userId] || 0) + 1;
-}
-
-function removeActiveUser(userId) {
-    active_users[userId] = (active_users[userId] || 0) - 1;
-    if (active_users[userId] <= 0) {
-        delete active_users[userId];
-    }
 }
 
 function addPizzaPurchase(failed, latency, items) {
@@ -127,7 +115,7 @@ function sendMetricsToGrafana(metrics) {
 
 
 function sendMetricsPeriodically(period) {
-    const timer = setInterval(() => {
+    const timer = setInterval(async () => {
         try {
             const metrics = [];
             //http method metrics
@@ -145,7 +133,7 @@ function sendMetricsPeriodically(period) {
             metrics.push(createMetric('hardware_use', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {component: 'memory'}));
 
             // user metrics
-            metrics.push(createMetric('active_users', Object.keys(active_users).length, '1', 'gauge', 'asInt', {}));
+            metrics.push(createMetric('active_users', await DB.getNumActiveUsers(), '1', 'gauge', 'asInt', {}));
 
             //pizza metrics
             if (pizza_period_requests > 0) {
@@ -172,4 +160,4 @@ function sendMetricsPeriodically(period) {
 
 sendMetricsPeriodically(10_000); //send metrics every 10 seconds
 
-module.exports = {addLoginMetric, addActiveUser, removeActiveUser, addPizzaPurchase, requestTracker}
+module.exports = {addLoginMetric, addPizzaPurchase, requestTracker}

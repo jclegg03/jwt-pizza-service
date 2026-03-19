@@ -1,5 +1,4 @@
-const config = require("./src/config.js");
-const BASE_URL = config.deploymentUrl + "/api";
+const BASE_URL = "http://localhost:3000/api"; //config.deploymentUrl + "/api";
 
 let menu = []
 const franchiseId = 1;
@@ -8,7 +7,13 @@ const storeId = 1;
 let users = [
     {name: "metrics1", email: "metrics1@test.com", password: "pass1"},
     {name: "metrics2", email: "metrics2@test.com", password: "pass2"},
-    {name: "metrics3", email: "metrics3@test.com", password: "pass3"}
+    {name: "metrics3", email: "metrics3@test.com", password: "pass3"},
+    {name: "metrics4", email: "metrics4@test.com", password: "pass1"},
+    {name: "metrics5", email: "metrics5@test.com", password: "pass2"},
+    {name: "metrics6", email: "metrics6@test.com", password: "pass3"},
+    {name: "metrics7", email: "metrics7@test.com", password: "pass1"},
+    {name: "metrics8", email: "metrics8@test.com", password: "pass2"},
+    {name: "metrics9", email: "metrics9@test.com", password: "pass3"}
 ];
 
 async function registerUser(user) {
@@ -43,7 +48,7 @@ async function loginUser(user) {
 
 async function login() {
     const user = users[Math.floor(Math.random() * users.length)];
-    await loginUser(user);
+    return await loginUser(user);
 }
 
 async function getMenu(token) {
@@ -67,7 +72,8 @@ async function badLogin() {
         throw new Error("badLogin succeeded");
     }
     await res.json();
-    return undefined;
+    console.log("bad login");
+    return null;
 }
 
 async function logout(token) {
@@ -77,11 +83,11 @@ async function logout(token) {
             'Authorization': `Bearer ${token}`,
         },
     });
+    await res.json()
     if (res.status !== 200) {
-        throw new Error("logout failed");
+        throw new Error("logout failed: " + res.status);
     }
-    await res.json();
-    return undefined;
+    return null;
 }
 
 function buildOrder(numItems) {
@@ -109,10 +115,12 @@ async function orderPizza(token) {
             'Content-Type': 'application/json', Authorization: `Bearer ${token}`
         }, body: JSON.stringify(buildOrder(numItems))
     });
-    if (res.status !== 200) {
-        throw new Error("pizza order failed");
+    const data = await res.json()
+    if (res.status === 401 && data.message === "Token expired") {
+        throw new Error("expired token");
+    } else if (res.status !== 200) {
+        throw new Error("pizza order failed: " + res.status + " " + token);
     }
-    await res.json();
     return token;
 }
 
@@ -127,9 +135,10 @@ async function makeBadOrder(token) {
         }, body: JSON.stringify(buildOrder(numItems))
     });
     if (res.status === 200) {
-        console.error("pizza order succeeded");
+        throw new Error("pizza order succeeded");
     }
     await res.json();
+    console.log("bad order");
     return token;
 }
 
@@ -156,16 +165,17 @@ async function registerNewUser() {
     });
     const data = await res.json();
     users.push({name, email, password});
-    if (users.length > 5) {
+    if (users.length > 15) {
         users.shift();
     }
+    console.log("new user registered")
     return data.token;
 }
 
 const loggedOutActions = [
-    {weight: 50, fn: async () => Promise.resolve()},
-    {weight: 50, fn: async () => login()},
-    {weight: 5, fn: async () => registerNewUser()},
+    {weight: 20, fn: async () => Promise.resolve()},
+    {weight: 20, fn: async () => login()},
+    {weight: 2, fn: async () => registerNewUser()},
     {weight: 1, fn: async () => badLogin()}
 ]
 
@@ -181,17 +191,44 @@ function getRandomAction(actionArray) {
 
 async function simulateDiner() {
     const endTime = Date.now() + 60 * 60 * 1000; // 60 minutes in ms
-    let token = undefined
-    while (Date.now() < endTime) {
-        let action;
-        if (token !== undefined && token !== null) {
-            action = getRandomAction(loggedInDinerActions);
-        } else {
-            action = getRandomAction(loggedOutActions);
+    let token = null
+    let actions = [];
+    let action;
+    try {
+        console.log("starting loop")
+        while (Date.now() < endTime) {
+            if (token) {
+                action = getRandomAction(loggedInDinerActions);
+            } else {
+                action = getRandomAction(loggedOutActions);
+            }
+            try {
+                token = await action(token);
+                if (actions.push(action) > 10) {
+                    actions.shift();
+                }
+                await sleep(3_000);
+            } catch (e) {
+                if (e.message === "expired token") {
+                    console.log('expired token');
+                    await logout(token);
+                    token = await login();
+                } else {
+                    throw e;
+                }
+            }
         }
-        console.log(action.toString());
-        token = await action(token);
-        await sleep(3_000);
+        if (token) {
+            await logout(token);
+        }
+    } catch (error) {
+        console.error(token);
+        console.error(error.message + "\n");
+        for (let i in actions) {
+            console.error(actions[i].toString());
+        }
+        console.error(action.toString() + "\n");
+        process.exit(1);
     }
 }
 
@@ -202,6 +239,7 @@ async function main() {
             token = await loginUser(users[i]);
         } catch (e) {
             if (e.message === "loginUser failed: 401") {
+                console.log(e);
                 token = await registerUser(users[i]);
             } else {
                 console.error(e)
@@ -211,7 +249,7 @@ async function main() {
         await logout(token);
     }
     await getMenu(undefined);
-    await Promise.all([simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(),])
+    await Promise.all([simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(), simulateDiner(),])
     return 0;
 }
 

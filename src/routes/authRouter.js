@@ -56,8 +56,8 @@ async function setAuthUser(req, res, next) {
     try {
       const authRow = await DB.getFromToken(token)
       if (authRow != null) {
-        // Check the database to make sure the token is valid.
-        if (Date.now() - new Date(authRow.lastActiveTime) > (config.authTimeoutValue * 60_000)) {
+        const isExpired = Date.now() - new Date(authRow.lastActiveTime) > (config.authTimeoutValue * 60_000);
+        if (isExpired && !(req.method === 'DELETE' && req.path === '/api/auth')) {
           return res.status(401).json({message: 'Token expired'});
         }
         req.user = jwt.verify(token, config.jwtSecret);
@@ -99,7 +99,6 @@ authRouter.post(
       });
       const auth = await setAuth(user);
       res.json({user: user, token: auth});
-      addActiveUser(user.id);
     } catch (err) {
       if (err.code === 'ER_DUP_ENTRY') {
         return res.status(409).json({message: 'Email already in use'});
@@ -119,7 +118,6 @@ authRouter.put(
           const user = await DB.getUser(email, password);
           const auth = await setAuth(user);
           res.json({user: user, token: auth});
-          addActiveUser(user.id);
       } catch (err) {
           failed = true;
           throw err;
@@ -132,24 +130,15 @@ authRouter.put(
 // logout
 authRouter.delete(
   "/",
+  authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const token = readAuthToken(req);
-    if (!token) {
-      return res.status(401).send({message: "unauthorized"})
-    }
-    try {
-      req.user = jwt.verify(token, config.jwtSecret);
-    } catch {
-      return res.status(401).send({message: "unauthorized"});
-    }
     await clearAuth(req);
-    res.json({ message: "logout successful" });
-      removeActiveUser(req.user.id);
+    res.json({message: "logout successful"});
   }),
 );
 
 async function setAuth(user) {
-  const token = jwt.sign(user, config.jwtSecret);
+  const token = jwt.sign({...user, jti: Math.random()}, config.jwtSecret);
   await DB.loginUser(user.id, token);
   return token;
 }

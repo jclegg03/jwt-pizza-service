@@ -9,6 +9,22 @@ class DB {
     this.initialized = this.initializeDatabase();
   }
 
+  async getNumActiveUsers() {
+    const connection = await this.getConnection();
+    try {
+      const authResult = await this.query(
+        connection,
+        `SELECT COUNT(DISTINCT userId) as count
+         FROM auth
+         WHERE lastActiveTime > DATE_SUB(NOW(), INTERVAL ? MINUTE)`,
+        [config.authTimeoutValue],
+      );
+      return authResult[0].count
+    } finally {
+      connection.end();
+    }
+  }
+
   async getMenu() {
     const connection = await this.getConnection();
     try {
@@ -201,7 +217,19 @@ class DB {
         [token],
       );
       if (authResult.length === 0) return null;
-      else return authResult[0];
+      const row = authResult[0];
+      const elapsed = Date.now() - new Date(row.lastActiveTime);
+      const timeout = config.authTimeoutValue * 60_000;
+      if (elapsed <= timeout) {
+        await this.query(
+          connection,
+          `UPDATE auth
+           SET lastActiveTime = NOW()
+           WHERE token = ?`,
+          [token],
+        );
+      }
+      return row;
     } finally {
       connection.end();
     }

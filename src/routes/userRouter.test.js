@@ -39,15 +39,12 @@ describe("userRouter", () => {
   });
 
   describe("updateUser", () => {
-    console.log('testUser.email at describe time:', testUser.email);
     const updatedUser = {
       name: "new Name",
       email: testUser.email,
       password: "a",
     };
     it("properly updates the user", async () => {
-      console.log('testUser.email: ', testUser.email);
-      console.log('updatedUser.email: ', updatedUser.email);
       const updateUserRes = await request(app)
         .put(`/api/user/${testUserId}`)
         .set({Authorization: `Bearer ${testUserAuthToken}`})
@@ -244,7 +241,6 @@ describe("userRouter", () => {
     });
 
     it("properly deletes user", async () => {
-      console.log(deleteUserId);
       const deleteRes = await request(app)
         .delete(`/api/user/${deleteUserId}`)
         .set("Authorization", "Bearer " + testAdminAuthToken);
