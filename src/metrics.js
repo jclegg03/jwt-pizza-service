@@ -50,16 +50,19 @@ function addLoginMetric(failed) {
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
-    if (req.method === 'OPTIONS' || req.method === 'HEAD') {
-        return next();
-    }
+    // if (req.method === 'OPTIONS' || req.method === 'HEAD') {
+    //     return next();
+    // }
     const startTime = Date.now();
-    const method = `${req.method}`;
-    requests[method] = (requests[method] || 0) + 1;
     res.on('finish', () => {
+        const route = (req.baseUrl + (req.route?.path || ''))
+            .replace(/^\/api/, '')
+            .replace(/\/+$/, '');
+        const key = `${req.method}:${route || req.path}`;
+        requests[key] = (requests[key] || 0) + 1;
         service_latency += (Date.now() - startTime);
         service_requests += 1;
-    })
+    });
     next();
 }
 
@@ -68,9 +71,11 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 
     const metric = {
         name: metricName, unit: metricUnit, [metricType]: {
-            dataPoints: [{
-                [valueType]: metricValue, timeUnixNano: Date.now() * 1000000, attributes: [],
-            },],
+            dataPoints: [
+                {
+                    [valueType]: metricValue, timeUnixNano: Date.now() * 1000000, attributes: [],
+                },
+            ],
         },
     };
 
@@ -90,11 +95,15 @@ function createMetric(metricName, metricValue, metricUnit, metricType, valueType
 
 function sendMetricsToGrafana(metrics) {
     const body = {
-        resourceMetrics: [{
-            scopeMetrics: [{
-                metrics,
-            },],
-        },],
+        resourceMetrics: [
+            {
+                scopeMetrics: [
+                    {
+                        metrics,
+                    },
+                ],
+            },
+        ],
     };
 
     fetch(`${config.metrics.endpointUrl}`, {
@@ -119,8 +128,11 @@ function sendMetricsPeriodically(period) {
         try {
             const metrics = [];
             //http method metrics
-            Object.keys(requests).forEach((method) => {
-                metrics.push(createMetric('requests', requests[method], '1', 'sum', 'asInt', {method: method}));
+            // http method+route metrics
+            Object.keys(requests).forEach((key) => {
+                const [method, ...routeParts] = key.split(':');
+                const route = routeParts.join(':'); // handles any colons in the route
+                metrics.push(createMetric('requests', requests[key], '1', 'sum', 'asInt', {method, route}));
             });
             if (service_requests > 0) {
                 const http_latency = service_latency / service_requests;
@@ -129,8 +141,18 @@ function sendMetricsPeriodically(period) {
                 metrics.push(createMetric('latency', http_latency, 'ms', 'gauge', 'asDouble', {type: "request"}));
             }
             //system metrics
-            metrics.push(createMetric('hardware_use', getCpuUsagePercentage(), '%', 'gauge', 'asDouble', {component: 'cpu'}));
-            metrics.push(createMetric('hardware_use', getMemoryUsagePercentage(), '%', 'gauge', 'asDouble', {component: 'memory'}));
+            metrics.push(createMetric('hardware_use',
+                getCpuUsagePercentage(),
+                '%',
+                'gauge',
+                'asDouble',
+                {component: 'cpu'}));
+            metrics.push(createMetric('hardware_use',
+                getMemoryUsagePercentage(),
+                '%',
+                'gauge',
+                'asDouble',
+                {component: 'memory'}));
 
             // user metrics
             metrics.push(createMetric('active_users', await DB.getNumActiveUsers(), '1', 'gauge', 'asInt', {}));
@@ -142,8 +164,18 @@ function sendMetricsPeriodically(period) {
                 pizza_period_requests = 0;
                 metrics.push(createMetric('latency', factory_latency, 'ms', 'gauge', 'asDouble', {type: "pizza"}));
             }
-            metrics.push(createMetric('pizza_purchase', pizzas_purchased, '1', 'sum', 'asInt', {type: "pizzas_bought"}));
-            metrics.push(createMetric('pizza_purchase', pizza_revenue, '$', 'sum', 'asDouble', {type: "pizza_revenue"}));
+            metrics.push(createMetric('pizza_purchase',
+                pizzas_purchased,
+                '1',
+                'sum',
+                'asInt',
+                {type: "pizzas_bought"}));
+            metrics.push(createMetric('pizza_purchase',
+                pizza_revenue,
+                '$',
+                'sum',
+                'asDouble',
+                {type: "pizza_revenue"}));
             metrics.push(createMetric('pizza_purchase', pizza_fails, '1', 'sum', 'asInt', {type: 'pizza_fails'}));
 
             //auth metrics

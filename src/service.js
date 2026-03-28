@@ -5,6 +5,7 @@ const franchiseRouter = require("./routes/franchiseRouter.js");
 const userRouter = require("./routes/userRouter.js");
 const version = require("./version.json");
 const config = require("./config.js");
+const {requestTracker} = require("./metrics");
 
 const app = express();
 app.use(express.json());
@@ -18,7 +19,7 @@ app.use((req, res, next) => {
 });
 
 const apiRouter = express.Router();
-app.use("/api", apiRouter);
+app.use("/api", requestTracker, apiRouter);
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/user", userRouter);
 apiRouter.use("/order", orderRouter);
@@ -44,7 +45,7 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("*", (req, res) => {
+app.use("*", requestTracker, (req, res) => {
   res.status(404).json({
     message: "unknown endpoint",
   });

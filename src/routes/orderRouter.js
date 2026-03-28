@@ -3,7 +3,7 @@ const config = require("../config.js");
 const { Role, DB } = require("../database/database.js");
 const { authRouter } = require("./authRouter.js");
 const { asyncHandler, StatusCodeError } = require("../endpointHelper.js");
-const {addPizzaPurchase, requestTracker} = require("../metrics");
+const {addPizzaPurchase} = require("../metrics");
 
 const orderRouter = express.Router();
 
@@ -76,7 +76,6 @@ orderRouter.docs = [
     },
   },
 ];
-orderRouter.use(requestTracker);
 
 // getMenu
 orderRouter.get(
