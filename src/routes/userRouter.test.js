@@ -144,7 +144,7 @@ describe("userRouter", () => {
     });
 
     it("lists all users", async () => {
-      let numUsers = 3; //franchise, testdiner, admin
+      let numUsers = 3 + 2; //testfranchise, testdiner, admin, franchise, user
       const listUsersRes = await request(app)
         .get("/api/user")
         .set("Authorization", "Bearer " + testAdminAuthToken);
