@@ -73,6 +73,7 @@ jobs:
                 name: '${{ secrets.FRANCHISEE_NAME }}',
                 email: '${{ secrets.FRANCHISEE_EMAIL }}',
                 password: '${{ secrets.FRANCHISEE_PASSWORD }}',
+              },
             },
             metrics: {
               source: 'jwt-pizza-service',
