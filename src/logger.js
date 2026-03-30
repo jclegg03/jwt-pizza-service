@@ -1,60 +1,64 @@
 const config = require('./config');
 
 class Logger {
-  httpLogger = (req, res, next) => {
-    let send = res.send;
-    res.send = (resBody) => {
-      const logData = {
-        authorized: !!req.headers.authorization,
-        path: req.originalUrl,
-        method: req.method,
-        statusCode: res.statusCode,
-        reqBody: JSON.stringify(req.body),
-        resBody: JSON.stringify(resBody),
-      };
-      const level = this.statusToLogLevel(res.statusCode);
-      this.log(level, 'http', logData);
-      res.send = send;
-      return res.send(resBody);
+    httpLogger = (req, res, next) => {
+        let send = res.send;
+        res.send = (resBody) => {
+            const logData = {
+                authorized: !!req.headers.authorization,
+                path: req.originalUrl,
+                method: req.method,
+                statusCode: res.statusCode,
+                reqBody: JSON.stringify(req.body),
+                resBody: JSON.stringify(resBody),
+            };
+            const level = this.statusToLogLevel(res.statusCode);
+            this.log(level, 'http', logData);
+            res.send = send;
+            return res.send(resBody);
+        };
+        next();
     };
-    next();
-  };
 
-  log(level, type, logData) {
-    const labels = { component: config.loggingConfig.source, level: level, type: type };
-    const values = [this.nowString(), this.sanitize(logData)];
-    const logEvent = { streams: [{ stream: labels, values: [values] }] };
+    log(level, type, logData) {
+        const labels = { component: config.loggingConfig.source, level: level, type: type };
+        const values = [this.nowString(), this.sanitize(logData)];
+        const logEvent = { streams: [{ stream: labels, values: [values] }] };
 
-    this.sendLogToService(logEvent);
-  }
+        this.sendLogToService(logEvent);
+    }
 
-  statusToLogLevel(statusCode) {
-    if (statusCode >= 500) return 'error';
-    if (statusCode >= 400) return 'warn';
-    return 'info';
-  }
+    statusToLogLevel(statusCode) {
+        if (statusCode >= 500) return 'error';
+        if (statusCode >= 400) return 'warn';
+        return 'info';
+    }
 
-  nowString() {
-    return (Math.floor(Date.now()) * 1000000).toString();
-  }
+    nowString() {
+        return (Math.floor(Date.now()) * 1000000).toString();
+    }
 
-  sanitize(logData) {
-    logData = JSON.stringify(logData);
-    return logData.replace(/\\"password\\":\s*\\"[^"]*\\"/g, '\\"password\\": \\"*****\\"');
-  }
+    sanitize(logData) {
+        logData = JSON.stringify(logData);
+        logData = logData.replace(/\\"email\\":\s*\\"[^"]*\\"/g, '\\"email\\": \\"*****\\"');
+        logData = logData.replace(/\\"password\\":\s*\\"[^"]*\\"/g, '\\"password\\": \\"*****\\"');
+        logData = logData.replace(/\\"token\\":\s*\\"[^"]*\\"/g, '\\"token\\": \\"*****\\"');
+        logData = logData.replace(/\\"jwt\\":\s*\\"[^"]*\\"/g, '\\"jwt\\": \\"*****\\"');
+        return logData;
+    }
 
-  sendLogToService(event) {
-    const body = JSON.stringify(event);
-    fetch(`${config.loggingConfig.endpointUrl}`, {
-      method: 'post',
-      body: body,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${config.loggingConfig.accountId}:${config.loggingConfig.apiKey}`,
-      },
-    }).then((res) => {
-      if (!res.ok) console.log('Failed to send log to logging service');
-    });
-  }
+    sendLogToService(event) {
+        const body = JSON.stringify(event);
+        fetch(`${config.loggingConfig.endpointUrl}`, {
+            method: 'post',
+            body: body,
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${config.loggingConfig.accountId}:${config.loggingConfig.apiKey}`,
+            },
+        }).then((res) => {
+            if (!res.ok) console.log('Failed to send log to logging service');
+        });
+    }
 }
 module.exports = new Logger();

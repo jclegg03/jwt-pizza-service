@@ -4,6 +4,7 @@ const { Role, DB } = require('../database/database.js');
 const { authRouter } = require('./authRouter.js');
 const { asyncHandler, StatusCodeError } = require('../endpointHelper.js');
 const { purchaseMetric } = require('../metrics.js');
+const logger = require('../logger.js');
 
 
 const orderRouter = express.Router();
@@ -82,13 +83,15 @@ orderRouter.post(
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const startTime = Date.now();
+    const body = { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order };
     const r = await fetch(`${config.factory.url}/api/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', authorization: `Bearer ${config.factory.apiKey}` },
-      body: JSON.stringify({ diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order }),
+      body: JSON.stringify(body),
     });
     const j = await r.json();
     const latency = Date.now() - startTime;
+    logger.log("info", "order", { body: body, response: j, latency: latency });
     if (r.ok) {
       const revenue = orderReq.items.reduce((sum, item) => sum + item.price, 0);
       purchaseMetric(true, latency, revenue);
