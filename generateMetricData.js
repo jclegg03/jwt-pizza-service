@@ -21,8 +21,7 @@ let users = [
 const loggedInDinerActions = [
     {weight: 500, fn: async (token) => getMenu(token)},
     {weight: 100, fn: async (token) => logout(token)},
-    {weight: 500, fn: async (token) => orderPizza(token)},
-    {weight: 1, fn: async (token) => makeBadOrder(token)},
+    {weight: 500, fn: async (token) => orderPizza(token)}, {weight: 0, fn: async (token) => makeBadOrder(token)},
     {weight: 500, fn: async (token) => Promise.resolve(token)}, // do
                                                                 // nothing
 ]
@@ -245,8 +244,6 @@ async function main() {
     }
     await getMenu(undefined);
     await Promise.all([
-        simulateDiner(),
-        simulateDiner(),
         simulateDiner(),
         simulateDiner(),
         simulateDiner(),
