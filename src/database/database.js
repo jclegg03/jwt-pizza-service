@@ -418,7 +418,7 @@ class DB {
         }
 
         if (!dbExists) {
-          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: 'admin', roles: [{ role: Role.Admin }] };
+          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: `${config.db.defaultAdminPassword}`, roles: [{ role: Role.Admin }] };
           this.addUser(defaultAdmin);
         }
       } finally {

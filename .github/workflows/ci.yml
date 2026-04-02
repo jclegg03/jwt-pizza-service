@@ -49,6 +49,7 @@ jobs:
                 connectTimeout: 60000,
               },
               listPerPage: 10,
+              defaultAdminPassword: '${{ secrets.DEFAULT_ADMIN_PASSWORD }}',
             },
             factory: {
               url: 'https://pizza-factory.cs329.click',
