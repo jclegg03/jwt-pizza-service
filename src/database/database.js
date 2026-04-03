@@ -18,7 +18,10 @@ class DB {
   //   }
   //   finally {
   //     connection.end();
-  //   }}
+  //   }
+  
+  //   await this.initializeDatabase();
+  // }
 
   async getMenu() {
     const connection = await this.getConnection();
