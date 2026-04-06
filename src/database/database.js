@@ -11,17 +11,17 @@ class DB {
     this.initialized = this.initializeDatabase();
   }
 
-  // async resetDatabase() {
-  //   const connection = await this.getConnection();
-  //   try {
-  //     await connection.query(`DROP DATABASE IF EXISTS ${config.db.connection.database}`);
-  //   }
-  //   finally {
-  //     connection.end();
-  //   }
+  async resetDatabase() {
+    const connection = await this.getConnection();
+    try {
+      await connection.query(`DROP DATABASE IF EXISTS ${config.db.connection.database}`);
+    }
+    finally {
+      connection.end();
+    }
   
-  //   await this.initializeDatabase();
-  // }
+    await this.initializeDatabase();
+  }
 
 
   async getMenu() {
@@ -422,7 +422,7 @@ class DB {
         }
 
         if (!dbExists) {
-          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: `${config.db.defaultAdminPassword}`, roles: [{ role: Role.Admin }] };
+          const defaultAdmin = { name: 'Master Cheif', email: 'a@jwt.com', password: 'admin', roles: [{ role: Role.Admin }] };
           this.addUser(defaultAdmin);
         }
       } finally {
