@@ -92,6 +92,34 @@ test("Get user franchises", async () => {
     expect(getFranchisesRes.body).toEqual(expect.arrayContaining([franchise]));
 });
 
+test("Delete franchise as admin", async () => {
+    const franchiseName = randomName();
+    let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+    franchise = await DB.createFranchise(franchise);
+
+    const deleteFranchiseRes = await request(app)
+        .delete("/api/franchise/" + franchise.id)
+        .set("Authorization", 'Bearer ' + testUser.token)
+        .send();
+
+    expect(deleteFranchiseRes.status).toBe(200);
+    expect(deleteFranchiseRes.body).toEqual({ message: 'franchise deleted' });
+});
+
+test("Delete franchise without auth", async () => {
+    const franchiseName = randomName();
+    let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
+    franchise = await DB.createFranchise(franchise);
+
+    // NOTE: the router has a TODO — auth is not currently enforced on delete
+    const deleteFranchiseRes = await request(app)
+        .delete("/api/franchise/" + franchise.id)
+        .send();
+
+    expect(deleteFranchiseRes.status).toBe(200);
+    expect(deleteFranchiseRes.body).toEqual({ message: 'franchise deleted' });
+});
+
 // afterAll(async () => {
 //     await demoteAdmin(testUser);
 // });
