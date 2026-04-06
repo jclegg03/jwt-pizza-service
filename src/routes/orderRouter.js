@@ -80,7 +80,19 @@ orderRouter.post(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const orderReq = req.body;
+    const { franchiseId, storeId, items } = req.body;
+    if (!Number.isInteger(franchiseId) || !Number.isInteger(storeId) || !Array.isArray(items)) {
+      return res.status(400).json({ message: 'Invalid order' });
+    }
+    const sanitizedItems = items.map((item) => ({
+      menuId: Number.isInteger(item.menuId) ? item.menuId : null,
+      description: typeof item.description === 'string' ? item.description.slice(0, 256) : '',
+      price: typeof item.price === 'number' ? item.price : null,
+    }));
+    if (sanitizedItems.some((item) => item.menuId === null || item.price === null)) {
+      return res.status(400).json({ message: 'Invalid order item' });
+    }
+    const orderReq = { franchiseId, storeId, items: sanitizedItems };
     const order = await DB.addDinerOrder(req.user, orderReq);
     const startTime = Date.now();
     const body = { diner: { id: req.user.id, name: req.user.name, email: req.user.email }, order };
