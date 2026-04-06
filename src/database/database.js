@@ -148,25 +148,28 @@ class DB {
   async updateUser(userId, name, email, password) {
     const connection = await this.getConnection();
     try {
+      const setClauses = [];
       const params = [];
       if (email) {
-        // Check if email is already taken by another user
         const emailResult = await this.query(connection, `SELECT id FROM user WHERE email=? AND id<>?`, [email, userId]);
         if (emailResult.length > 0) {
           throw new StatusCodeError('Email already taken', 409);
         }
-        params.push(`email='${email}'`);
+        setClauses.push('email=?');
+        params.push(email);
       }
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
-        params.push(`password='${hashedPassword}'`);
+        setClauses.push('password=?');
+        params.push(hashedPassword);
       }
       if (name) {
-        params.push(`name='${name}'`);
+        setClauses.push('name=?');
+        params.push(name);
       }
-      if (params.length > 0) {
-        const query = `UPDATE user SET ${params.join(', ')} WHERE id=${userId}`;
-        await this.query(connection, query);
+      if (setClauses.length > 0) {
+        params.push(userId);
+        await this.query(connection, `UPDATE user SET ${setClauses.join(', ')} WHERE id=?`, params);
       }
       return this.getUser(email, password);
     } finally {
