@@ -23,6 +23,7 @@ class DB {
   //   await this.initializeDatabase();
   // }
 
+
   async getMenu() {
     const connection = await this.getConnection();
     try {
