@@ -111,13 +111,12 @@ test("Delete franchise without auth", async () => {
     let franchise = {"name": franchiseName, "admins": [{"email": testUser.email}]};
     franchise = await DB.createFranchise(franchise);
 
-    // NOTE: the router has a TODO — auth is not currently enforced on delete
     const deleteFranchiseRes = await request(app)
         .delete("/api/franchise/" + franchise.id)
         .send();
 
-    expect(deleteFranchiseRes.status).toBe(200);
-    expect(deleteFranchiseRes.body).toEqual({ message: 'franchise deleted' });
+    expect(deleteFranchiseRes.status).toBe(401);
+    // expect(deleteFranchiseRes.body).toEqual({ message: '' });
 });
 
 // afterAll(async () => {
