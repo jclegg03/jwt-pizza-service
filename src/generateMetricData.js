@@ -183,14 +183,12 @@ async function makeBadOrder(token) {
 }
 
 async function simulateDiner(time) {
-    console.log(`starting with time ${time}`);
     const endTime = Date.now() + time;
     let token = null
     let actions = [];
     let action;
     try {
         while (Date.now() < endTime) {
-            console.log("looping");
             if (token) {
                 action = getRandomAction(loggedInDinerActions);
             } else {
@@ -226,7 +224,6 @@ async function simulateDiner(time) {
 }
 
 async function generateMetricData(time) {
-    console.log("starting");
     for (let i = 0; i < users.length; i += 1) {
         let token;
         try {
