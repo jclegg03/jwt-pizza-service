@@ -39,12 +39,15 @@ class Logger {
     }
 
     sanitize(logData) {
-        logData = JSON.stringify(logData);
-        logData = logData.replace(/\\"email\\":\s*\\"[^"]*\\"/g, '\\"email\\": \\"*****\\"');
-        logData = logData.replace(/\\"password\\":\s*\\"[^"]*\\"/g, '\\"password\\": \\"*****\\"');
-        logData = logData.replace(/\\"token\\":\s*\\"[^"]*\\"/g, '\\"token\\": \\"*****\\"');
-        logData = logData.replace(/\\"jwt\\":\s*\\"[^"]*\\"/g, '\\"jwt\\": \\"*****\\"');
-        return logData;
+        const REDACTED_KEYS = new Set(['email', 'password', 'token', 'jwt']);
+        const redact = (obj) => {
+            if (typeof obj !== 'object' || obj === null) return obj;
+            if (Array.isArray(obj)) return obj.map(redact);
+            return Object.fromEntries(
+                Object.entries(obj).map(([k, v]) => [k, REDACTED_KEYS.has(k) ? '*****' : redact(v)])
+            );
+        };
+        return JSON.stringify(redact(logData));
     }
 
     sendLogToService(event) {
