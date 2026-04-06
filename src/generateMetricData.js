@@ -23,7 +23,8 @@ let users = [
 const loggedInDinerActions = [
     {weight: 500, fn: async (token) => getMenu(token)},
     {weight: 100, fn: async (token) => logout(token)},
-    {weight: 500, fn: async (token) => orderPizza(token)}, {weight: 0, fn: async (token) => makeBadOrder(token)},
+    {weight: 500, fn: async (token) => orderPizza(token)},
+    {weight: 0, fn: async (token) => makeBadOrder(token)},
     {weight: 500, fn: async (token) => Promise.resolve(token)}, // do
                                                                 // nothing
 ]
@@ -187,8 +188,8 @@ async function simulateDiner(time) {
     let token = null
     let actions = [];
     let action;
-    try {
-        while (Date.now() < endTime) {
+    while (Date.now() < endTime) {
+        try {
             if (token) {
                 action = getRandomAction(loggedInDinerActions);
             } else {
@@ -208,19 +209,19 @@ async function simulateDiner(time) {
                     throw e;
                 }
             }
+        } catch (error) {
+            console.error(token);
+            console.error(error.message + "\n");
+            for (let i in actions) {
+                console.error(actions[i].toString());
+            }
+            console.error(action.toString() + "\n");
         }
-        if (token) {
-            await logout(token);
-        }
-    } catch (error) {
-        console.error(token);
-        console.error(error.message + "\n");
-        for (let i in actions) {
-            console.error(actions[i].toString());
-        }
-        console.error(action.toString() + "\n");
-        process.exit(1);
     }
+    if (token) {
+        await logout(token);
+    }
+
 }
 
 async function generateMetricData(time) {
