@@ -56,7 +56,7 @@ function incrementFailedLogins() {
 }
 
 // This will send metrics to the metrics endpoint every 10 seconds
-setInterval(() => {
+const metricsInterval = setInterval(() => {
     const metrics = [];
 
     // Endpoint request counts
@@ -100,7 +100,7 @@ setInterval(() => {
     metrics.push(createMetric('failed_logins', failedLogins, '1', 'sum', 'asInt', {}));
 
     sendMetricToMetricService(metrics);
-}, 10000);
+}, 10000).unref();
 
 function getCpuUsagePercentage() {
     const cpuUsage = os.loadavg()[0] / os.cpus().length;
