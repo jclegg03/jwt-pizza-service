@@ -80,9 +80,13 @@ orderRouter.post(
   '/',
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
-    const { franchiseId, storeId, items } = req.body;
+    const { franchiseId, items } = req.body;
+    const storeId = parseInt(req.body.storeId, 10);
     if (!Number.isInteger(franchiseId) || !Number.isInteger(storeId) || !Array.isArray(items)) {
       return res.status(400).json({ message: 'Invalid order' });
+    }
+    if (items.length > 19) {
+      return res.status(400).json({ message: 'Order cannot exceed 19 items' });
     }
     const sanitizedItems = items.map((item) => ({
       menuId: Number.isInteger(item.menuId) ? item.menuId : null,
