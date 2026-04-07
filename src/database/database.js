@@ -132,8 +132,8 @@ class DB {
       nameFilter = `%${nameFilter}%`;
       const users = await this.query(
         connection,
-        `SELECT id, name, email FROM user WHERE name LIKE ? LIMIT ?, ?`,
-        [nameFilter, offset, limit]
+        `SELECT id, name, email FROM user WHERE name LIKE ? LIMIT ${offset},${limit}`,
+        [nameFilter]
       );
       for (const user of users) {
         const roleResult = await this.query(connection, `SELECT * FROM userRole WHERE userId=?`, [user.id]);
@@ -215,7 +215,7 @@ class DB {
     try {
       page = Math.max(1, Math.floor(Number(page)) || 1);
       const offset = this.getOffset(page, config.db.listPerPage);
-      const orders = await this.query(connection, `SELECT id, franchiseId, storeId, date FROM dinerOrder WHERE dinerId=? LIMIT ?,?`, [user.id, offset, config.db.listPerPage]);
+      const orders = await this.query(connection, `SELECT id, franchiseId, storeId, date FROM dinerOrder WHERE dinerId=? LIMIT ${offset},${config.db.listPerPage}`, [user.id]);
       for (const order of orders) {
         let items = await this.query(connection, `SELECT id, menuId, description, price FROM orderItem WHERE orderId=?`, [order.id]);
         order.items = items;
@@ -294,7 +294,10 @@ class DB {
     nameFilter = nameFilter.replace(/\*/g, '%');
 
     try {
-      let franchises = await this.query(connection, `SELECT id, name FROM franchise WHERE name LIKE ? LIMIT ? OFFSET ?`, [nameFilter, limit + 1, offset]);
+      const [franchiseSQL, franchiseParams] = nameFilter === '%'
+        ? [`SELECT id, name FROM franchise LIMIT ${limit + 1} OFFSET ${offset}`, []]
+        : [`SELECT id, name FROM franchise WHERE name LIKE ? LIMIT ${limit + 1} OFFSET ${offset}`, [nameFilter]];
+      let franchises = await this.query(connection, franchiseSQL, franchiseParams);
 
       const more = franchises.length > limit;
       if (more) {
