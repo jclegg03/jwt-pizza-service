@@ -56,7 +56,7 @@ function incrementFailedLogins() {
 }
 
 // This will send metrics to the metrics endpoint every 10 seconds
-const metricsInterval = setInterval(() => {
+setInterval(() => {
     const metrics = [];
 
     // Endpoint request counts
