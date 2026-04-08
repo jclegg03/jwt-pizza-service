@@ -51,7 +51,10 @@ describe("authRouter", () => {
       delete user.password;
       expect(loginRes.body.user).toMatchObject(user);
     });
-
+    it("fails on empty string", async () => {
+      const loginRes = await request(app).put("/api/auth").send({email: testUser.email, password: ""});
+      expect(loginRes.status).toBe(401);
+    })
     //TODO: ensure fails when wrong password
   });
 

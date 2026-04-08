@@ -101,7 +101,7 @@ class DB {
                                                              FROM user
                                                              WHERE email = ?`, [email],);
             const user = userResult[0];
-            if (!user || (password && !(await bcrypt.compare(password, user.password)))) {
+            if (!user || !password || !(await bcrypt.compare(password, user.password))) {
                 throw new StatusCodeError("unauthorized", 401);
             }
 
