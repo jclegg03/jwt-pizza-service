@@ -13,6 +13,7 @@ async function createAdminUser() {
   user.email = user.name + '@admin.com';
 
   user = await DB.addUser(user);
+  user.password = config.testUserPassword;
 
   const registerRes = await request(app).put('/api/auth').send(user);
 
