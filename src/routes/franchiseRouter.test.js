@@ -1,5 +1,3 @@
-jest.mock('./decodeBody');
-
 const request = require("supertest");
 const {
   makeTestUser,

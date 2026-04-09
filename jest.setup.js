@@ -1,3 +1,5 @@
+jest.mock("./src/decodeBody")
+
 const config = require("./src/config");
 const mysql = require("mysql2/promise");
 
