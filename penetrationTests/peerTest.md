@@ -262,4 +262,5 @@
 - Many critical vulnerabilities can be fixed with a few lines of code
   - Many critical vulnerabilities are *caused* by a few lines of code
 - TDD and test suites can give a false sense of security if they do not test malicious inputs or are improperly written
+  - CONSTANT VIGILANCE
 - Good security starts with good code hygiene and practices
